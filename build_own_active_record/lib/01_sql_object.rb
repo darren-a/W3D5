@@ -28,7 +28,17 @@ class SQLObject
   end
 
   def self.finalize!
-  end
+
+    self.columns.each do |col|
+      define_method(col) do  # getter
+        attributes[col]
+      end
+      define_method("#{col}=") do |value|
+        attributes[col] = value
+      end
+    end  # names each
+
+  end #finalize
 
   def self.table_name=(table_name)
     @table_name = table_name
@@ -58,8 +68,17 @@ class SQLObject
   end
 
   def initialize(params = {})
-    # ...
-  end
+    # Your #initialize method should iterate through each of the attr_name,
+    # value pairs. For each attr_name, it should first convert the name to
+    # a symbol, and then check whether the attr_name is among the columns.
+    # If it is not, raise an error.
+      params.each do |name, value|
+        name_as_sym = name.to_sym
+        raise "unknown attribute '#{name}'" unless self.class.columns.include?(name_as_sym)
+        self.send("#{name_as_sym}=", value)
+      end
+  end  # initialize
+
 
   def attributes
     # Let's define #attributes in SQLObject. It should lazily initialize
